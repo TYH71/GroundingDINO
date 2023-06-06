@@ -1,0 +1,24 @@
+FROM pytorch/pytorch:1.13.1-cuda11.6-cudnn8-devel
+
+ARG DEBIAN_FRONTEND=noninteractive
+ENV CUDA_HOME=/usr/local/cuda
+
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    git libopencv-dev wget \
+    && apt-get clean && rm -rf /tmp/* /var/tmp/*
+RUN git clone https://github.com/TYH71/GroundingDINO.git
+WORKDIR /workspace/GroundingDINO
+RUN pip install -e . --user
+RUN python setup.py build develop --user
+RUN pip install packaging==21.3 --user
+RUN pip install gradio --user
+
+ENV LC_ALL C.UTF-8 
+ENV LANG C.UTF-8
+
+# container listens to port 7860
+EXPOSE 7579
+
+# Start Gradio application
+CMD ["python", "/workspace/GroundingDINO/demo/gradio_app-copy.py"]
